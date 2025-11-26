@@ -1,27 +1,27 @@
-# Tiny Vedas - RISC-V RV32IM Processor
+# Tiny Vedas - eBPF SoC
 
-A complete, open-source implementation of a RISC-V RV32IM processor written in SystemVerilog. Tiny Vedas is a 4-stage pipelined processor with full RV32IM instruction set support, hazard handling, and comprehensive verification.
-
-It is used as a reference for a [free course on RISC-V Processor Design](https://youtu.be/izPdo7n1u1I).
+A complete, fully tested System-on-Chip (SoC) implementation with a CPU that executes the eBPF (extended Berkeley Packet Filter) instruction set architecture. The SoC includes a pipelined eBPF processor, instruction memory, and data memory, all written in SystemVerilog with comprehensive verification.
 
 ## Features
 
 ### Architecture
-- **ISA**: RISC-V RV32IM (32-bit integer + multiply/divide)
+- **ISA**: eBPF (extended Berkeley Packet Filter) v1.0
 - **Pipeline**: 4-stage pipeline (IFU → IDU0 → IDU1 → EXU)
-- **Data Width**: 32-bit (XLEN = 32)
+- **Data Width**: 64-bit registers (11 registers: R0-R10)
 - **Memory**: Harvard architecture with separate instruction and data memories
-- **Reset Vector**: Configurable (default: 0x80000000)
+- **Reset Vector**: Configurable
 
 ### Instruction Set Support
-- **Arithmetic**: ADD, SUB, ADDI, LUI, AUIPC
-- **Logical**: AND, OR, XOR, ANDI, ORI, XORI
-- **Shifts**: SLL, SRL, SRA, SLLI, SRLI, SRAI
-- **Comparison**: SLT, SLTU, SLTI, SLTIU
-- **Branches**: BEQ, BNE, BLT, BGE, BLTU, BGEU
-- **Jumps**: JAL, JALR
-- **Memory**: LB, LH, LW, LBU, LHU, SB, SH, SW
-- **Multiply/Divide**: MUL, MULH, MULHU, MULHSU, DIV, DIVU, REM, REMU
+- **Arithmetic**: ADD, SUB, MUL, DIV, MOD (64-bit and 32-bit variants)
+- **Logical**: AND, OR, XOR
+- **Shifts**: LSH (left shift), RSH (right shift), ARSH (arithmetic right shift)
+- **Comparison**: JEQ, JGT, JGE, JLT, JLE, JNE, JSGT, JSGE, JSLT, JSLE, JSET
+- **Jumps**: JMP, JMP32 (conditional branches)
+- **Memory**: Load/Store operations (8, 16, 32, 64-bit)
+  - LD/LDX: Load from memory
+  - ST/STX: Store to memory
+  - LD64: Load 64-bit immediate (wide instruction)
+- **Special**: MOV, EXIT, CALL, Endianness conversion
 
 ### Advanced Features
 - **Data Hazard Resolution**: Register forwarding from EXU to IDU1
@@ -33,17 +33,17 @@ It is used as a reference for a [free course on RISC-V Processor Design](https:/
 ## Project Structure
 
 ```
-tiny-vedas/
+tiny-vedas-ebpf/
 ├── rtl/                    # RTL design files
-│   ├── core_top.sv        # Top-level processor module
+│   ├── core_top.sv        # Top-level SoC module
 │   ├── core_top.flist     # File list for synthesis
 │   ├── ifu/               # Instruction fetch unit
 │   │   └── ifu.sv         # IFU implementation
 │   ├── idu/               # Instruction decode units
 │   │   ├── idu0.sv        # Decode stage 0
 │   │   ├── idu1.sv        # Decode stage 1
-│   │   ├── reg_file.sv    # Register file
-│   │   ├── decode.sv      # Auto-generated decode logic
+│   │   ├── reg_file.sv    # Register file (11 eBPF registers)
+│   │   ├── ebpf_decoder.sv # Auto-generated eBPF decode logic
 │   │   └── decode         # Decode table specification
 │   ├── exu/               # Execute unit
 │   │   ├── exu.sv         # Execute unit top-level
@@ -57,6 +57,8 @@ tiny-vedas/
 │   └── lib/               # Utility modules
 │       ├── mem_lib.sv     # Memory modules
 │       └── beh_lib.sv     # Behavioral models
+├── ebpf-iss/              # eBPF Instruction Set Simulator
+│   └── main.py            # ISS for generating execution traces
 ├── tests/                 # Test programs
 │   ├── asm/              # Assembly test programs
 │   ├── c/                # C program tests
@@ -68,10 +70,11 @@ tiny-vedas/
 │   └── verilator/        # Verilator simulation files
 ├── tools/                 # Development utilities
 │   ├── dec_table_gen.py  # Decode table generator
-│   ├── sim_manager.py    # Simulation manager
-│   └── riscv_sim         # RISC-V simulator
+│   └── sim_manager.py    # Simulation manager
+├── open-decode-tables/    # Decode table specifications
+│   └── tables/           # eBPF instruction decode tables
+├── work/                  # Simulation output directory
 ├── SVLib/                 # SystemVerilog library
-├── docs/                  # Documentation and Slides for the course
 ├── Makefile              # Build and simulation targets
 └── LICENSE               # Apache 2.0 license
 ```
@@ -80,16 +83,16 @@ tiny-vedas/
 
 ### Prerequisites
 - **SystemVerilog Simulator**: Verilator (recommended) or Xilinx Vivado
-- **RISC-V Toolchain**: GCC with RISC-V target
-- **Python 3**: For build scripts
+- **eBPF Toolchain**: LLVM/Clang with eBPF target support
+- **Python 3**: For build scripts and ISS
 - **Ubuntu 20.04+**: Tested platform
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/siliscale/Tiny-Vedas.git
-   cd Tiny-Vedas
+   git clone https://github.com/siliscale/Tiny-Vedas-eBPF.git
+   cd Tiny-Vedas-eBPF
    ```
 
 2. **Install dependencies**
@@ -97,8 +100,8 @@ tiny-vedas/
    # Install Verilator
    sudo apt-get install verilator
    
-   # Install RISC-V toolchain
-   sudo apt-get install gcc-riscv64-linux-gnu
+   # Install LLVM/Clang with eBPF support
+   sudo apt-get install clang llvm
    
    # Install Python dependencies
    pip install -r requirements.txt
@@ -111,7 +114,7 @@ tiny-vedas/
    
    # Run specific tests
    cd tests/asm
-   make basic_alu_r
+   make basic_add_i
    ```
 
 ## Simulation
@@ -120,16 +123,16 @@ tiny-vedas/
 ```bash
 make core_top_sim
 ```
-This runs the main testbench with Verilator, executing test programs and generating execution traces.
+This runs the main testbench with Verilator, executing eBPF test programs and generating execution traces. The simulation compares RTL execution traces with the eBPF ISS (Instruction Set Simulator) for verification.
 
 ### Individual Unit Tests
 ```bash
 # Test load/store unit
 make lsu_sim
 
-# Test specific assembly programs
+# Test specific eBPF assembly programs
 cd tests/asm
-make basic_alu_r    # Test ALU register operations
+make basic_add_i    # Test ALU immediate operations
 make basic_mul      # Test multiplication
 make basic_branch   # Test branch instructions
 ```
@@ -137,15 +140,21 @@ make basic_branch   # Test branch instructions
 ### C Program Tests
 ```bash
 cd tests/c
-make helloworld     # Compile and run C program
+make helloworld     # Compile C to eBPF and run
+```
+
+### Using the eBPF ISS
+The eBPF Instruction Set Simulator (`ebpf-iss/main.py`) can be used independently to generate reference traces:
+```bash
+python3 ebpf-iss/main.py test_program.o -o iss.log
 ```
 
 ## Configuration
 
 ### Memory Configuration
-- **Instruction Memory**: 1KB (1024 words)
-- **Data Memory**: 1KB (1024 words)
-- **Stack Pointer**: Configurable initial value (default: 0x80000000)
+- **Instruction Memory**: Separate instruction memory for eBPF program code
+- **Data Memory**: Separate data memory for stack and data operations
+- **Stack Pointer (R10)**: Configurable initial value (register R10 is read-only frame pointer)
 
 ### Pipeline Configuration
 - **Stages**: 4-stage pipeline
@@ -157,13 +166,15 @@ make helloworld     # Compile and run C program
 ### Test Coverage
 - **Unit Tests**: Individual component verification
 - **Integration Tests**: Full pipeline verification
-- **Instruction Tests**: Complete RV32IM instruction set coverage
+- **Instruction Tests**: Complete eBPF instruction set coverage
 - **Hazard Tests**: Data and control hazard scenarios
+- **ISS Comparison**: RTL traces compared against eBPF ISS reference traces
 
 ### Test Results
 Simulation results are logged to:
-- `rtl.log`: Instruction execution trace
-- `console.log`: Program output
+- `rtl.log`: RTL instruction execution trace
+- `iss.log`: ISS reference execution trace
+- `sim.log`: Simulation comparison results
 - Waveform files: For detailed timing analysis
 
 ## Synthesis
@@ -188,9 +199,9 @@ The design is synthesizable with standard ASIC tools. Use `rtl/core_top.flist` a
 - **Memory Latency**: 1 cycle for aligned accesses
 
 ### Resource Utilization
-- **Registers**: ~2000 flip-flops
+- **Registers**: ~2000 flip-flops (11 eBPF registers × 64 bits)
 - **LUTs**: ~5000 (FPGA estimate)
-- **Memory**: 2KB total (1KB instruction + 1KB data)
+- **Memory**: Separate instruction and data memories
 
 ## Contributing
 
@@ -212,8 +223,9 @@ This project is licensed under the Apache License, Version 2.0. See [LICENSE](LI
 
 ## Acknowledgments
 
-- RISC-V Foundation for the open instruction set architecture
+- Linux kernel eBPF project for the eBPF instruction set architecture
 - Verilator team for the fast SystemVerilog simulator
+- LLVM project for eBPF toolchain support
 - Open-source community for tools and libraries
 
 ## Support

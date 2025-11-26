@@ -66,7 +66,7 @@ module idu0 (
   decode_out_t decode_out;
 
   /* Instantiate Decode Table */
-  rv32im_decoder decode_inst (
+  ebpf_decoder decode_inst (
       .i(instr),
       .o(decode_out)
   );
@@ -75,36 +75,28 @@ module idu0 (
 
   assign idu0_out_i.instr = instr;
   assign idu0_out_i.instr_tag = instr_tag;
-  assign idu0_out_i.rs1_addr = instr[19:15];
-  assign idu0_out_i.rs2_addr = instr[24:20];
+  /* TODO: Change Here */
+  assign idu0_out_i.rs1_addr = instr[11:8];
+  assign idu0_out_i.rs2_addr = instr[15:12];
 
-  assign idu0_out_i.imm = ({32{decode_out.imm20 & ~decode_out.pc}} & {instr[31:12], 12'h0}) |
-                          ({32{decode_out.imm20 & decode_out.pc}} & {{11{instr[31]}}, instr[31], instr[19:12], instr[20], instr[30:21], 1'h0}) |
-                          ({32{decode_out.imm12}} & {{20{instr[31]}}, instr[31:20]}) |
-                          ({32{decode_out.condbr}} & {{19{instr[31]}}, instr[31], instr[7], instr[30:25], instr[11:8], 1'b0}) |
-                          ({32{decode_out.load}} & {{20{instr[31]}}, instr[31:20]}) |
-                          ({32{decode_out.store}} & {{20{instr[31]}}, instr[31:25], instr[11:7]});
+  assign idu0_out_i.imm = {{32{instr[63]}}, instr[63:32]};
 
   /* imm_valid is high ONLY when the immediate is used in the register file path, for branch ops, is used in the PC path */
-  assign idu0_out_i.imm_valid = (decode_out.imm20 & ~decode_out.jal) |
-                                decode_out.imm12 |
-                                decode_out.load |
-                                decode_out.store;
+  assign idu0_out_i.imm_valid = decode_out.imm & decode_out.legal;
 
-  assign idu0_out_i.rd_addr = instr[11:7];
-  assign idu0_out_i.shamt = instr[24:20];
+  /* TODO: Change Here */
+  assign idu0_out_i.rd_addr = instr[11:8];
+  assign idu0_out_i.shamt = instr[36:32];
 
   assign idu0_out_i.alu = decode_out.alu;
   assign idu0_out_i.rs1 = decode_out.rs1;
   assign idu0_out_i.rs2 = decode_out.rs2;
-  assign idu0_out_i.imm12 = decode_out.imm12;
   assign idu0_out_i.rd = decode_out.rd;
-  assign idu0_out_i.shimm5 = decode_out.shimm5;
-  assign idu0_out_i.imm20 = decode_out.imm20;
   assign idu0_out_i.pc = decode_out.pc;
   assign idu0_out_i.load = decode_out.load;
   assign idu0_out_i.store = decode_out.store;
   assign idu0_out_i.lsu = decode_out.lsu;
+  assign idu0_out_i.exit = decode_out.exit;
   assign idu0_out_i.add = decode_out.add;
   assign idu0_out_i.sub = decode_out.sub;
   assign idu0_out_i.land = decode_out.land;
@@ -125,11 +117,11 @@ module idu0 (
   assign idu0_out_i.half = decode_out.half;
   assign idu0_out_i.word = decode_out.word;
   assign idu0_out_i.mul = decode_out.mul;
+  assign idu0_out_i.divu = decode_out.divu;
+  assign idu0_out_i.remu = decode_out.remu;
   assign idu0_out_i.rs1_sign = decode_out.rs1_sign;
   assign idu0_out_i.rs2_sign = decode_out.rs2_sign;
   assign idu0_out_i.low = decode_out.low;
-  assign idu0_out_i.div = decode_out.div;
-  assign idu0_out_i.rem = decode_out.rem;
   assign idu0_out_i.nop = decode_out.nop;
   assign idu0_out_i.legal = decode_out.legal;
 

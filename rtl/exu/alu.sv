@@ -51,21 +51,21 @@ module alu (
 
     input idu1_out_t alu_ctrl,
 
-    output logic [XLEN-1:0] instr_tag_out,
-    output logic [    31:0] instr_out,
+    output logic [     XLEN-1:0] instr_tag_out,
+    output logic [INSTR_LEN-1:0] instr_out,
 
-    output logic [XLEN-1:0] alu_wb_data,
-    output logic [     4:0] alu_wb_rd_addr,
-    output logic            alu_wb_rd_wr_en,
+    output logic [               XLEN-1:0] alu_wb_data,
+    output logic [REG_FILE_ADDR_WIDTH-1:0] alu_wb_rd_addr,
+    output logic                           alu_wb_rd_wr_en,
 
     output logic [XLEN-1:0] pc_out,
     output logic            pc_load
 
 );
 
-  logic [XLEN-1:0] alu_wb_data_i;
-  logic [     4:0] alu_wb_rd_addr_i;
-  logic            alu_wb_rd_wr_en_i;
+  logic [               XLEN-1:0] alu_wb_data_i;
+  logic [REG_FILE_ADDR_WIDTH-1:0] alu_wb_rd_addr_i;
+  logic                           alu_wb_rd_wr_en_i;
 
   logic [XLEN-1:0] a, b;
 
@@ -90,9 +90,7 @@ module alu (
   assign a = (alu_ctrl.jal | (alu_ctrl.pc & alu_ctrl.add)) ? alu_ctrl.instr_tag : alu_ctrl.rs1_data;
 
   assign b = ({XLEN{alu_ctrl.imm_valid}} & alu_ctrl.imm) |
-             ({XLEN{alu_ctrl.shimm5}} & {{(XLEN-5){1'b0}}, alu_ctrl.shamt[$clog2(
-      XLEN
-  )-1:0]}) | ({XLEN{alu_ctrl.rs2}} & alu_ctrl.rs2_data) | ({XLEN{alu_ctrl.jal}} & 32'h00000004);
+             ({XLEN{alu_ctrl.rs2}} & alu_ctrl.rs2_data) | ({XLEN{alu_ctrl.jal}} & 32'h00000004);
 
   assign bm[XLEN-1:0] = (alu_ctrl.sub) ? ~b[XLEN-1:0] : b[XLEN-1:0];
 
@@ -161,7 +159,7 @@ module alu (
   );
 
   register_sync_rstn #(
-      .WIDTH(XLEN + 32)
+      .WIDTH(XLEN + INSTR_LEN)
   ) instr_tag_ff (
       .clk (clk),
       .rstn(rstn),

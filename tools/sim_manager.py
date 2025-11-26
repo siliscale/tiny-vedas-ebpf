@@ -27,9 +27,9 @@ def run_gen(test: str) -> None:
     # Try and compile the test, if it fails, print the error and exit
     try:
         if extension == ".s":
-            os.system(f"riscv64-unknown-elf-gcc -I{os.path.join('tests', test_path[0])} -march=rv32im -mabi=ilp32 -o work/{test}/test.elf -nostdlib {os.path.join('tests', test_path[0], test_path[1] + extension)} -Wl,-Ttext=0x100000 > {os.path.join('work', test, 'compile.log')}")
-        elif extension == ".c":
-            os.system(f"riscv64-unknown-elf-gcc -I{os.path.join('tests', test_path[0])} -march=rv32im -mabi=ilp32 -o work/{test}/test.elf -nostdlib -fno-builtin-printf -fno-common -falign-functions=4 {os.path.join('tests', test_path[0], test_path[1] + extension)} {os.path.join('tests', test_path[0], 'asm_functions', 'printf.s')} {os.path.join('tests', test_path[0], 'asm_functions', 'eot_sequence.s')} -Wl,-Ttext=0x100000 > {os.path.join('work', test, 'compile.log')}")
+            os.system(f"llvm-mc -I{os.path.join('tests', test_path[0])} -triple bpf -filetype=obj -o work/{test}/test.elf {os.path.join('tests', test_path[0], test_path[1] + extension)}  > {os.path.join('work', test, 'compile.log')}")
+        #elif extension == ".c":
+        #    os.system(f"riscv64-unknown-elf-gcc -I{os.path.join('tests', test_path[0])} -march=rv32im -mabi=ilp32 -o work/{test}/test.elf -nostdlib -fno-builtin-printf -fno-common -falign-functions=4 {os.path.join('tests', test_path[0], test_path[1] + extension)} {os.path.join('tests', test_path[0], 'asm_functions', 'printf.s')} {os.path.join('tests', test_path[0], 'asm_functions', 'eot_sequence.s')} -Wl,-Ttext=0x100000 > {os.path.join('work', test, 'compile.log')}")
     except Exception as e:
         print(f"Error compiling test {test}: {e}")
         sys.exit(1)
@@ -47,10 +47,10 @@ def run_iss(test: str) -> None:
         shutil.copy(dmem_path, os.path.join("work", test, "dmem.hex"))
     # try and run the ISS
     try:
-        if has_dmem:
-            os.system(f"./tools/riscv_sim {elf_path} -o {os.path.join('work', test, 'iss.log')} -m {os.path.join('work', test, 'dmem.hex')}")
-        else:
-            os.system(f"./tools/riscv_sim {elf_path} -o {os.path.join('work', test, 'iss.log')}")
+        #if has_dmem:
+        #    os.system(f"./tools/riscv_sim {elf_path} -o {os.path.join('work', test, 'iss.log')} -m {os.path.join('work', test, 'dmem.hex')}")
+        #else:
+        os.system(f"python3 ./ebpf-iss/main.py {elf_path} -o {os.path.join('work', test, 'iss.log')}")
     except Exception as e:
         print(f"Error running ISS for test {test}: {e}")
         sys.exit(1)
@@ -79,7 +79,6 @@ def prepare_imem(test: str) -> None:
         # Pad with zeros to fill IMEM_DEPTH
         if len(imem_data) < IMEM_DEPTH:
             imem_data = imem_data + b'\x00' * (IMEM_DEPTH - len(imem_data))
-        
         # Generate the data memory from the .rodata section
         rodata_section = elf.get_section_by_name('.rodata')
         # Get the address of the .rodata section
@@ -100,19 +99,19 @@ def prepare_imem(test: str) -> None:
                 for i in range(DMEM_DEPTH - len(rodata_new)):
                     rodata_new.append(0)
             with open(dmem_path, "w") as f:
-                for i in range(0, DMEM_DEPTH, 4):
-                    word = rodata_new[i:i+4]
+                for i in range(0, DMEM_DEPTH, 8):
+                    word = rodata_new[i:i+8]
                     hex_str = '{:08x}'.format(int.from_bytes(word, byteorder='little'))
                     f.write(f"{hex_str}\n")
             
             
-    # Write the instruction memory as hex, 4 bytes per line
+    # Write the instruction memory as hex, 8  bytes per line
     with open(imem_path, "w") as f:
-        for i in range(0, IMEM_DEPTH, 4):
+        for i in range(0, IMEM_DEPTH, 8):
             # Get 4 bytes
-            word = imem_data[i:i+4]
+            word = imem_data[i:i+8]
             # Convert to hex string, removing '0x' prefix and padding to 8 chars
-            hex_str = '{:08x}'.format(int.from_bytes(word, byteorder='little'))
+            hex_str = '{:016x}'.format(int.from_bytes(word, byteorder='little'))
             f.write(f"{hex_str}\n")
 
 def read_task_list(filename: str) -> List[str]:
@@ -150,7 +149,7 @@ def run_verilator(test: str) -> None:
 def run_xsim(test: str) -> None:
     """Execute XSim simulation."""
     has_dmem = os.path.exists(os.path.join("work", test, "dmem.hex"))
-    xsim_cmd = f"export PROJ=$(pwd) && cd {os.path.join('work', test)} && xvlog -sv -f $PROJ/rtl/core_top.flist --define ICCM_INIT_FILE='\"imem.hex\"' --define RESET_VECTOR=32\\'h100000 --define STACK_POINTER_INIT_VALUE=32\\'h80000000"
+    xsim_cmd = f"export PROJ=$(pwd) && cd {os.path.join('work', test)} && xvlog -sv -f $PROJ/rtl/core_top.flist --define ICCM_INIT_FILE='\"imem.hex\"' --define RESET_VECTOR=32\\'h000000 --define STACK_POINTER_INIT_VALUE=32\\'h80000000"
     if has_dmem:
         xsim_cmd += f" --define DCCM_INIT_FILE='\"dmem.hex\"'"
     else:

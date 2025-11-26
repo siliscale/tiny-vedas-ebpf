@@ -41,23 +41,20 @@
 
 typedef struct packed {
 
-  logic [31:0]             instr;
-  logic [XLEN-1:0]         instr_tag;
-  logic [4:0]              rs1_addr;
-  logic [4:0]              rs2_addr;
-  logic [XLEN-1:0]         imm;
-  logic                    imm_valid;
-  logic [4:0]              rd_addr;
-  logic [$clog2(XLEN)-1:0] shamt;
+  logic [INSTR_LEN-1:0]           instr;
+  logic [XLEN-1:0]                instr_tag;
+  logic [REG_FILE_ADDR_WIDTH-1:0] rs1_addr;
+  logic [REG_FILE_ADDR_WIDTH-1:0] rs2_addr;
+  logic [XLEN-1:0]                imm;
+  logic                           imm_valid;
+  logic [REG_FILE_ADDR_WIDTH-1:0] rd_addr;
+  logic [$clog2(XLEN)-1:0]        shamt;
 
   /* Automatically generated */
   logic alu;
   logic rs1;
   logic rs2;
-  logic imm12;
   logic rd;
-  logic shimm5;
-  logic imm20;
   logic pc;
   logic load;
   logic store;
@@ -82,36 +79,34 @@ typedef struct packed {
   logic half;
   logic word;
   logic mul;
+  logic exit;
   logic rs1_sign;
   logic rs2_sign;
   logic low;
-  logic div;
-  logic rem;
+  logic divu;
+  logic remu;
   logic nop;
   logic legal;
 } idu0_out_t;
 
 typedef struct packed {
 
-  logic [31:0]             instr;
-  logic [XLEN-1:0]         instr_tag;
-  logic [XLEN-1:0]         rs1_data;
-  logic [XLEN-1:0]         rs2_data;
-  logic [4:0]              rs1_addr;
-  logic [4:0]              rs2_addr;
-  logic [XLEN-1:0]         imm;
-  logic                    imm_valid;
-  logic [4:0]              rd_addr;
-  logic [$clog2(XLEN)-1:0] shamt;
+  logic [INSTR_LEN-1:0]           instr;
+  logic [XLEN-1:0]                instr_tag;
+  logic [XLEN-1:0]                rs1_data;
+  logic [XLEN-1:0]                rs2_data;
+  logic [REG_FILE_ADDR_WIDTH-1:0] rs1_addr;
+  logic [REG_FILE_ADDR_WIDTH-1:0] rs2_addr;
+  logic [XLEN-1:0]                imm;
+  logic                           imm_valid;
+  logic [REG_FILE_ADDR_WIDTH-1:0] rd_addr;
+  logic [$clog2(XLEN)-1:0]        shamt;
 
   /* Automatically generated */
   logic alu;
   logic rs1;
   logic rs2;
-  logic imm12;
   logic rd;
-  logic shimm5;
-  logic imm20;
   logic pc;
   logic load;
   logic store;
@@ -136,25 +131,26 @@ typedef struct packed {
   logic half;
   logic word;
   logic mul;
+  logic exit;
   logic rs1_sign;
   logic rs2_sign;
   logic low;
-  logic div;
-  logic rem;
+  logic divu;
+  logic remu;
   logic nop;
   logic legal;
 } idu1_out_t;
 
 typedef struct packed {
-  logic [31:0] instr;
-  logic [XLEN-1:0] instr_tag;
-  logic [4:0] rs1_addr;
-  logic [4:0] rs2_addr;
-  logic [4:0] rd_addr;
-  logic mul;
-  logic alu;
-  logic div;
-  logic lsu;
+  logic [INSTR_LEN-1:0]           instr;
+  logic [XLEN-1:0]                instr_tag;
+  logic [REG_FILE_ADDR_WIDTH-1:0] rs1_addr;
+  logic [REG_FILE_ADDR_WIDTH-1:0] rs2_addr;
+  logic [REG_FILE_ADDR_WIDTH-1:0] rd_addr;
+  logic                           mul;
+  logic                           alu;
+  logic                           div;
+  logic                           lsu;
 } last_issued_instr_t;
 
 typedef enum logic [2:0] {

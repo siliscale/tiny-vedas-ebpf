@@ -57,16 +57,16 @@ module idu1 #(
     output idu1_out_t idu1_out,
 
     /* Control Signals */
-    output logic            pipe_stall,
-    input  logic            pipe_flush,
+    output logic                           pipe_stall,
+    input  logic                           pipe_flush,
     /* EXU -> IDU1 (WB) Interface */
-    input  logic [XLEN-1:0] exu_wb_data,
-    input  logic [     4:0] exu_wb_rd_addr,
-    input  logic            exu_wb_rd_wr_en,
-    input  logic            exu_mul_busy,
-    input  logic            exu_div_busy,
-    input  logic            exu_lsu_busy,
-    input  logic            exu_lsu_stall
+    input  logic [               XLEN-1:0] exu_wb_data,
+    input  logic [REG_FILE_ADDR_WIDTH-1:0] exu_wb_rd_addr,
+    input  logic                           exu_wb_rd_wr_en,
+    input  logic                           exu_mul_busy,
+    input  logic                           exu_div_busy,
+    input  logic                           exu_lsu_busy,
+    input  logic                           exu_lsu_stall
 );
 
   idu1_out_t idu1_out_i;
@@ -80,7 +80,7 @@ module idu1 #(
       .STACK_POINTER_INIT_VALUE(STACK_POINTER_INIT_VALUE)
   ) reg_file_i (
       .clk      (clk),
-      .rstn    (rstn),
+      .rstn     (rstn),
       .rs1_addr (idu0_out.rs1_addr),
       .rs2_addr (idu0_out.rs2_addr),
       .rs1_rd_en(idu0_out.rs1 & idu0_out.legal),
@@ -109,15 +109,13 @@ module idu1 #(
   assign idu1_out_i.alu = idu0_out.alu;
   assign idu1_out_i.rs1 = idu0_out.rs1;
   assign idu1_out_i.rs2 = idu0_out.rs2;
-  assign idu1_out_i.imm12 = idu0_out.imm12;
   assign idu1_out_i.rd = idu0_out.rd;
-  assign idu1_out_i.shimm5 = idu0_out.shimm5;
-  assign idu1_out_i.imm20 = idu0_out.imm20;
   assign idu1_out_i.pc = idu0_out.pc;
   assign idu1_out_i.load = idu0_out.load;
   assign idu1_out_i.store = idu0_out.store;
   assign idu1_out_i.lsu = idu0_out.lsu;
   assign idu1_out_i.add = idu0_out.add;
+  assign idu1_out_i.exit = idu0_out.exit;
   assign idu1_out_i.sub = idu0_out.sub;
   assign idu1_out_i.land = idu0_out.land;
   assign idu1_out_i.lor = idu0_out.lor;
@@ -140,8 +138,8 @@ module idu1 #(
   assign idu1_out_i.rs1_sign = idu0_out.rs1_sign;
   assign idu1_out_i.rs2_sign = idu0_out.rs2_sign;
   assign idu1_out_i.low = idu0_out.low;
-  assign idu1_out_i.div = idu0_out.div;
-  assign idu1_out_i.rem = idu0_out.rem;
+  assign idu1_out_i.divu = idu0_out.divu;
+  assign idu1_out_i.remu = idu0_out.remu;
   assign idu1_out_i.nop = idu0_out.nop;
   assign idu1_out_i.legal = idu0_out.legal;
 
@@ -169,7 +167,7 @@ module idu1 #(
         idu1_out_before_fwd.rd_addr,
         idu1_out_before_fwd.mul,
         idu1_out_before_fwd.alu,
-        idu1_out_before_fwd.div,
+        idu1_out_before_fwd.divu | idu1_out_before_fwd.remu,
         (idu1_out_before_fwd.load | idu1_out_before_fwd.store)
       }),
       .dout(last_issued_instr),

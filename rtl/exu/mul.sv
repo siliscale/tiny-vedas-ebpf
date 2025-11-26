@@ -46,16 +46,16 @@
 `endif
 
 module mul (
-    input  logic                 clk,
-    input  logic                 rstn,
-    input  logic                 freeze,
-    input  idu1_out_t            mul_ctrl,
-    output logic      [XLEN-1:0] out,
-    output logic      [     4:0] out_rd_addr,
-    output logic                 out_rd_wr_en,
-    output logic      [XLEN-1:0] instr_tag_out,
-    output logic      [    31:0] instr_out,
-    output logic                 mul_busy
+    input  logic                                clk,
+    input  logic                                rstn,
+    input  logic                                freeze,
+    input  idu1_out_t                           mul_ctrl,
+    output logic      [               XLEN-1:0] out,
+    output logic      [REG_FILE_ADDR_WIDTH-1:0] out_rd_addr,
+    output logic                                out_rd_wr_en,
+    output logic      [               XLEN-1:0] instr_tag_out,
+    output logic      [          INSTR_LEN-1:0] instr_out,
+    output logic                                mul_busy
 
 );
 
@@ -73,14 +73,14 @@ module mul (
   logic low_e1, low_e2, low_e3;
 
   logic [XLEN-1:0] a, b;
-  logic [4:0] out_rd_addr_e1, out_rd_addr_e2, out_rd_addr_e3;
+  logic [REG_FILE_ADDR_WIDTH-1:0] out_rd_addr_e1, out_rd_addr_e2, out_rd_addr_e3;
   logic out_rd_wr_en_e1, out_rd_wr_en_e2, out_rd_wr_en_e3;
 
   logic [XLEN-1:0] instr_tag_e1, instr_tag_e2, instr_tag_e3;
-  logic [31:0] instr_e1, instr_e2, instr_e3;
+  logic [INSTR_LEN-1:0] instr_e1, instr_e2, instr_e3;
 
   assign a = mul_ctrl.rs1_data;
-  assign b = mul_ctrl.rs2_data;
+  assign b = mul_ctrl.imm_valid ? mul_ctrl.imm : mul_ctrl.rs2_data;
 
   // --------------------------- Input flops    ----------------------------------
 
@@ -136,7 +136,7 @@ module mul (
   );
 
   register_sync_rstn #(
-      .WIDTH(5)
+      .WIDTH(REG_FILE_ADDR_WIDTH)
   ) out_rd_addr_ff (
       .clk (clk),
       .rstn(rstn),
@@ -154,7 +154,7 @@ module mul (
   );
 
   register_sync_rstn #(
-      .WIDTH(XLEN + 32)
+      .WIDTH(XLEN + INSTR_LEN)
   ) instr_tag_ff (
       .clk (clk),
       .rstn(rstn),
@@ -207,7 +207,7 @@ module mul (
       .dout(b_ff_e2[XLEN:0])
   );
   register_sync_rstn #(
-      .WIDTH(5)
+      .WIDTH(REG_FILE_ADDR_WIDTH)
   ) out_rd_addr_e2_ff (
       .clk (clk),
       .rstn(rstn),
@@ -225,7 +225,7 @@ module mul (
   );
 
   register_sync_rstn #(
-      .WIDTH(XLEN + 32)
+      .WIDTH(XLEN + INSTR_LEN)
   ) instr_tag_e2_ff (
       .clk (clk),
       .rstn(rstn),
@@ -259,7 +259,7 @@ module mul (
   );
 
   register_sync_rstn #(
-      .WIDTH(5)
+      .WIDTH(REG_FILE_ADDR_WIDTH)
   ) out_rd_addr_e3_ff (
       .clk (clk),
       .rstn(rstn),
@@ -277,7 +277,7 @@ module mul (
   );
 
   register_sync_rstn #(
-      .WIDTH(XLEN + 32)
+      .WIDTH(XLEN + INSTR_LEN)
   ) instr_tag_e3_ff (
       .clk (clk),
       .rstn(rstn),
