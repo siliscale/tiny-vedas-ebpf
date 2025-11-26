@@ -40,5 +40,6 @@ typedef struct packed {
 	logic atomic;
 	logic call;
 	logic exit;
+	logic neg;
 	logic arsh;
 } decode_out_t;

@@ -141,6 +141,7 @@ module idu1 #(
   assign idu1_out_i.divu = idu0_out.divu;
   assign idu1_out_i.remu = idu0_out.remu;
   assign idu1_out_i.nop = idu0_out.nop;
+  assign idu1_out_i.neg = idu0_out.neg;
   assign idu1_out_i.legal = idu0_out.legal;
 
   register_en_flush_sync_rstn #(

@@ -123,6 +123,7 @@ module idu0 (
   assign idu0_out_i.rs2_sign = decode_out.rs2_sign;
   assign idu0_out_i.low = decode_out.low;
   assign idu0_out_i.nop = decode_out.nop;
+  assign idu0_out_i.neg = decode_out.neg;
   assign idu0_out_i.legal = decode_out.legal;
 
   /* Output Flop */

@@ -87,10 +87,13 @@ module alu (
 
   /* For JAL/JALR operation, we reuse the same datapath for reg file update */
 
-  assign a = (alu_ctrl.jal | (alu_ctrl.pc & alu_ctrl.add)) ? alu_ctrl.instr_tag : alu_ctrl.rs1_data;
+  assign a = ({XLEN{alu_ctrl.jal | (alu_ctrl.pc & alu_ctrl.add)}} & alu_ctrl.instr_tag) |
+             ({XLEN{alu_ctrl.rs1 & ~alu_ctrl.neg}}) & alu_ctrl.rs1_data;
 
   assign b = ({XLEN{alu_ctrl.imm_valid}} & alu_ctrl.imm) |
-             ({XLEN{alu_ctrl.rs2}} & alu_ctrl.rs2_data) | ({XLEN{alu_ctrl.jal}} & 32'h00000004);
+             ({XLEN{alu_ctrl.rs2}} & (alu_ctrl.rs2_data)) |
+             ({XLEN{alu_ctrl.rs1 & alu_ctrl.neg}} & (alu_ctrl.rs1_data)) |
+             ({XLEN{alu_ctrl.jal}} & 32'h00000004);
 
   assign bm[XLEN-1:0] = (alu_ctrl.sub) ? ~b[XLEN-1:0] : b[XLEN-1:0];
 

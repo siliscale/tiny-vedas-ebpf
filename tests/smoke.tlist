@@ -10,4 +10,16 @@ asm.basic_mul_i
 asm.basic_divu_i
 asm.basic_remu_i
 asm.basic_mov_i
-
+asm.basic_mov_r
+asm.basic_add_r
+asm.basic_sub_r
+asm.basic_mul_r
+asm.basic_divu_r
+asm.basic_remu_r
+asm.basic_or_r
+asm.basic_and_r
+asm.basic_sll_r
+asm.basic_srl_r
+asm.basic_sra_r
+asm.basic_xor_r
+asm.basic_neg_r
