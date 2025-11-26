@@ -103,8 +103,8 @@ module idu1 #(
   assign idu1_out_i.rs2_addr = idu0_out.rs2_addr;
 
   /* WB to IDU1 forwarding */
-  assign idu1_out_i.rs1_data = (exu_wb_rd_addr == idu0_out.rs1_addr & exu_wb_rd_wr_en) ? exu_wb_data : rs1_data;
-  assign idu1_out_i.rs2_data = (exu_wb_rd_addr == idu0_out.rs2_addr & exu_wb_rd_wr_en) ? exu_wb_data : rs2_data;
+  assign idu1_out_i.rs1_data = ((exu_wb_rd_addr == idu0_out.rs1_addr) & idu0_out.rs1 & exu_wb_rd_wr_en) ? exu_wb_data : rs1_data;
+  assign idu1_out_i.rs2_data = ((exu_wb_rd_addr == idu0_out.rs2_addr) & idu0_out.rs2 & exu_wb_rd_wr_en) ? exu_wb_data : rs2_data;
 
   assign idu1_out_i.alu = idu0_out.alu;
   assign idu1_out_i.rs1 = idu0_out.rs1;

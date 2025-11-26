@@ -9,4 +9,5 @@ asm.basic_sra_i
 asm.basic_mul_i
 asm.basic_divu_i
 asm.basic_remu_i
+asm.basic_mov_i
 
